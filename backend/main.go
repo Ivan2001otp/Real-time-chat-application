@@ -1,7 +1,6 @@
 package main
 
 import (
-	"Backend/routes"
 	"log"
 	"net/http"
 	"github.com/gorilla/websocket"
@@ -48,9 +47,9 @@ func serveWs(w http.ResponseWriter,r *http.Request){
 /*routes*/
 func SetUpRoutes() {
 
-	// http.HandleFunc("/",func(w http.ResponseWriter,r *http.Request){
-	// 	log.Println(w,"simple server");
-	// })
+	http.HandleFunc("/",func(w http.ResponseWriter,r *http.Request){
+		log.Println(w,"simple server");
+	})
 
 	http.HandleFunc("/ws",serveWs);
 }
@@ -58,7 +57,7 @@ func SetUpRoutes() {
 
 func main(){
 	log.Println("let's go");
-	routes.SetUpRoutes();
+	SetUpRoutes();
 	err := http.ListenAndServe(":8080",nil)
 
 	if err!=nil{
