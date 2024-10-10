@@ -1,6 +1,9 @@
 import logo from './logo.svg';
 import './App.css';
+import React,{Component} from 'react';
+import {connect,sendMsg} from "./api";
 
+/*
 function App() {
   return (
     <div className="App">
@@ -20,6 +23,27 @@ function App() {
       </header>
     </div>
   );
+}
+*/
+
+class App extends Component{
+  constructor(props){
+    super(props)
+    connect();//when the app loads the websocket should be connected
+  }
+
+  send(){
+    console.log("hello")
+    sendMsg("hi immanuel ,what's up !!!");
+  }
+
+  render(){
+    return (
+      <div className='App'>
+        <button onClick={this.send}>Hit me</button>
+      </div>
+    )
+  }
 }
 
 export default App;
