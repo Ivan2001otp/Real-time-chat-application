@@ -3,60 +3,50 @@ package main
 import (
 	"log"
 	"net/http"
-	"github.com/gorilla/websocket"
+	"fmt"
+	"Backend/pkg/websocket"
 )
 
-/*websocket biz logic*/
-var upgrader = websocket.Upgrader{
-	ReadBufferSize: 1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request)bool{return true;},
-}
 
-func reader(conn *websocket.Conn){
-	for {
-		messageType ,p,err := conn.ReadMessage();
-		if err!=nil{
-			log.Println(err);
-			return;
-		}
+func serveWs(pool *websocket.Pool,w http.ResponseWriter,r *http.Request){
 
-		log.Println("message in socket is : ",string(p))
-
-		if err:= conn.WriteMessage(messageType,p);err!=nil{
-			log.Println(err);
-			return;
-		}
-	}
-}
-
-func serveWs(w http.ResponseWriter,r *http.Request){
-
-	log.Println(string(r.Host))
-	ws ,err := 	upgrader.Upgrade(w,r,nil);
+	log.Println("Websocket endpoint hit")
+	conn ,err := 	websocket.Upgrade(w,r);
 	if err!=nil{
-		log.Println(err);
+		fmt.Fprintf(w,"%+V\n",err)
 	}
 
-	log.Println("Successfully upgraded the http to websocket connection.")
+	// go websocket.Writer(ws)
+	// websocket.Reader(ws)
 
-	//listen for incoming messages or to write messages to websocket
-	reader(ws);
+	client := &websocket.Client{
+		Conn: conn,
+		Pool: pool,
+	}
+	pool.Register <- client;
+	client.Read();
+
 }
 
 /*routes*/
 func SetUpRoutes() {
 
+	pool := websocket.NewPool();
+	go pool.Start();
+
 	http.HandleFunc("/",func(w http.ResponseWriter,r *http.Request){
 		log.Println(w,"simple server");
 	})
 
-	http.HandleFunc("/ws",serveWs);
+	http.HandleFunc("/ws",func(w http.ResponseWriter,r *http.Request){
+		serveWs(pool,w,r);
+	});
+
 }
 
 
 func main(){
-	log.Println("let's go");
+	log.Println("Distributed Chat App v.0.01");
 	SetUpRoutes();
 	err := http.ListenAndServe(":8080",nil)
 
