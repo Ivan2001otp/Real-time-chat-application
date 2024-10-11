@@ -1,8 +1,9 @@
-import logo from './logo.svg';
 import './App.css';
 import React,{Component} from 'react';
 import {connect,sendMsg} from "./api";
-
+import Header from './components/Header/Header.jsx';
+import ChatHistory from './components/ChatHistory/ChatHistory.jsx';
+import ChatInput from './components/ChatInput/ChatInput.jsx';
 /*
 function App() {
   return (
@@ -28,21 +29,42 @@ function App() {
 
 class App extends Component{
   constructor(props){
-    super(props)
+    super(props);
+    this.state={
+      chatHistory:[]
+    }
     connect();//when the app loads the websocket should be connected
   }
 
-  send(){
+  componentDidMount(){
+    connect((msg)=>{
+      console.log("New message");
+      this.setState(prevState=>({
+        chatHistory:[...this.state.chatHistory,msg]
+      }))
+      console.log(this.state);
+    });
+  }
+
+  send(event){
     console.log("hello")
-    sendMsg("hi immanuel ,what's up !!!");
+    console.log(event);
+    if(event.keyCode===13){
+      //if enter key is hit,then send message to socket
+      sendMsg(event.target.value);
+      event.target.value = "";
+    }
   }
 
   render(){
     return (
       <div className='App'>
-        <button onClick={this.send}>Hit me</button>
+        <Header/>
+        <ChatHistory chatHistory={this.state.chatHistory}/>
+        {/* <button onClick={this.send}>Hit me</button> */}
+        <ChatInput send={this.send}/>
       </div>
-    )
+    );
   }
 }
 
